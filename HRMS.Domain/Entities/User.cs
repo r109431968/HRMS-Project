@@ -15,5 +15,8 @@ namespace HRMS.Domain.Entities
         public string Role { get; set; } = "Employee";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // Navigation Property — ek User ke multiple Refresh Tokens ho sakte hain
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
     }
 }

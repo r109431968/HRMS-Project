@@ -1,4 +1,5 @@
-﻿using HRMS.Application.DTOs;
+﻿using Azure.Core;
+using HRMS.Application.DTOs;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Entities;
 using Microsoft.AspNetCore.Http;
@@ -31,12 +32,42 @@ namespace HRMS.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var token = await _authService.LoginAsync(request.Email, request.Password);
+            var result = await _authService.LoginAsync(request.Email, request.Password);
 
-            if (token == null)
+            if (result == null)
                 return Unauthorized(new { message = "Invalid email or password." });
 
-            return Ok(new { token = token });
+            return Ok(result);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+        {
+            try
+            {
+                var (newAccessToken, newRefreshToken) = await _authService.RefreshTokenAsync(request.RefreshToken);
+
+                return Ok(new AuthResponseDto
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "Invalid or expired refresh token." });
+            }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request)
+        {
+            var result = await _authService.RevokeTokenAsync(request.RefreshToken);
+
+            if (!result)
+                return BadRequest(new { message = "Invalid token." });
+
+            return Ok(new { message = "Logged out successfully." });
         }
     }
 }
