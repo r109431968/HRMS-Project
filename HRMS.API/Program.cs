@@ -22,6 +22,10 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(
         typeof(HRMS.Application.Features.Employees.Queries.GetAllEmployeesQuery).Assembly));
 
+//builder.Services.AddMediatR(cfg =>
+//    cfg.RegisterServicesFromAssembly(
+//        typeof(HRMS.Application.Features.Departments.Queries.GetAllDepartmentsQuery).Assembly));
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
