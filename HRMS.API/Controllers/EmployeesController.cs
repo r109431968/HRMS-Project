@@ -81,12 +81,14 @@ namespace HRMS.API.Controllers
         {
             try
             {
-                var employee = await _mediator.Send(new GetAllEmployeesQuery());
+                var employee = await _mediator.Send(new GetEmployeeByIdQuery(id));
+                if (employee == null)
+                    return NotFound(new { message = $"Employee with id {id} not found." });
                 return Ok(employee);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching employee.");
+                _logger.LogError(ex, "Error occurred while fetching employee with id {Id}.", id);
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
@@ -123,6 +125,43 @@ namespace HRMS.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while creating employee.");
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateEmployeeCommand command)
+        {
+            try
+            {
+                command.Id = id;
+                var result = await _mediator.Send(command);
+                if (!result)
+                    return NotFound(new { message = $"Employee with id {id} not found." });
+                return Ok(new { message = "Employee updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating employee with id {Id}.", id);
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var result = await _mediator.Send(new DeleteEmployeeCommand(id));
+                if (!result)
+                    return NotFound(new { message = $"Employee with id {id} not found." });
+                return Ok(new { message = "Employee deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting employee with id {Id}.", id);
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
